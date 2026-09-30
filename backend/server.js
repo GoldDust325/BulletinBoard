@@ -39,11 +39,18 @@ app.post("/register", async (req, res) => {
             message: "User registered successfully.",
             userId: result.lastInsertRowid
         });
+        
     } catch (error) {
-        res.status(400).json({
-            message: "Unable to register user.",
-            error: error.message
-        });
+        if (error.message.includes("UNIQUE constraint failed")) {
+    return res.status(409).json({
+        message: "Username or email already exists."
+    });
+}
+
+res.status(500).json({
+    message: "Unable to register user.",
+    error: error.message
+});
     }
 });
 
@@ -102,11 +109,23 @@ app.post("/flyers", (req, res) => {
         created_by
     } = req.body;
 
-    if (!title || !created_by) {
-        return res.status(400).json({
-            message: "Title and created_by are required."
-        });
-    }
+    if (!title || title.trim() === "") {
+    return res.status(400).json({
+        message: "Title is required."
+    });
+}
+
+if (!created_by) {
+    return res.status(400).json({
+        message: "created_by is required."
+    });
+}
+
+if (category && typeof category !== "string") {
+    return res.status(400).json({
+        message: "Category must be text."
+    });
+}
 
     try {
         const statement = db.prepare(`
