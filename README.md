@@ -108,3 +108,5 @@ The backend currently supports:
 - added DELETE /flyers/:id
 - verified update and delete behavior with PowerShell
 - flyer CRUD is now complete
+- Added flyer category filtering using `GET /flyers?category=...`.
+- Tested filtering successfully with Academic and Social categories.

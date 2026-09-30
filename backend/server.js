@@ -139,11 +139,24 @@ app.post("/flyers", (req, res) => {
 });
 
 // Retrieve all flyers
+// Retrieve all flyers, with optional category filtering
 app.get("/flyers", (req, res) => {
+    const { category } = req.query;
+
     try {
-        const flyers = db
-            .prepare("SELECT * FROM flyers ORDER BY id DESC")
-            .all();
+        let flyers;
+
+        if (category) {
+            flyers = db
+                .prepare(
+                    "SELECT * FROM flyers WHERE category = ? ORDER BY id DESC"
+                )
+                .all(category);
+        } else {
+            flyers = db
+                .prepare("SELECT * FROM flyers ORDER BY id DESC")
+                .all();
+        }
 
         res.status(200).json(flyers);
 
