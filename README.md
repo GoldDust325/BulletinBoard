@@ -85,3 +85,22 @@ The backend currently supports:
 - Tested filtering successfully with Academic and Social categories.
 - Added ownership checks so users can only edit or delete flyers they created.
 - Added CORS support for the React frontend running at `http://localhost:5173`.
+
+### September 29, 2026
+
+- Added consistent SQLite database path using `__dirname`.
+- Enabled SQLite foreign key enforcement.
+- Added flyer creation with `POST /flyers`.
+- Added retrieval of all flyers with `GET /flyers`.
+- Added retrieval of a single flyer with `GET /flyers/:id`.
+- Tested flyer creation and retrieval successfully using PowerShell.
+
+### Current Backend Features
+
+- User registration
+- User login
+- Password hashing with bcrypt
+- SQLite database storage
+- Create flyer
+- View all flyers
+- View flyer details
