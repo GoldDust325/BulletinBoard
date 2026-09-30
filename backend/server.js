@@ -138,7 +138,6 @@ app.post("/flyers", (req, res) => {
     }
 });
 
-// Retrieve all flyers
 // Retrieve all flyers, with optional category filtering
 app.get("/flyers", (req, res) => {
     const { category } = req.query;
@@ -202,7 +201,8 @@ app.put("/flyers/:id", (req, res) => {
         description,
         category,
         event_date,
-        image_url
+        image_url,
+        user_id
     } = req.body;
 
     try {
@@ -215,6 +215,12 @@ app.put("/flyers/:id", (req, res) => {
                 message: "Flyer not found."
             });
         }
+
+        if (existingFlyer.created_by !== user_id) {
+    return res.status(403).json({
+        message: "You can only edit your own flyers."
+    });
+}
 
         const statement = db.prepare(`
             UPDATE flyers
@@ -255,6 +261,7 @@ app.put("/flyers/:id", (req, res) => {
 // Delete a flyer by ID
 app.delete("/flyers/:id", (req, res) => {
     const { id } = req.params;
+    const { user_id } = req.body;
 
     try {
         const existingFlyer = db
@@ -266,6 +273,11 @@ app.delete("/flyers/:id", (req, res) => {
                 message: "Flyer not found."
             });
         }
+        if (existingFlyer.created_by !== user_id) {
+    return res.status(403).json({
+        message: "You can only delete your own flyers."
+    });
+}
 
         db.prepare("DELETE FROM flyers WHERE id = ?").run(id);
 
