@@ -86,6 +86,7 @@ app.post("/login", async (req, res) => {
     }
 });
 
+// Create a new flyer
 app.post("/flyers", (req, res) => {
     const {
         title,
@@ -137,6 +138,7 @@ app.post("/flyers", (req, res) => {
     }
 });
 
+// Retrieve all flyers
 app.get("/flyers", (req, res) => {
     try {
         const flyers = db
@@ -153,6 +155,7 @@ app.get("/flyers", (req, res) => {
     }
 });
 
+// Retrieve a single flyer by ID
 app.get("/flyers/:id", (req, res) => {
     const { id } = req.params;
 
@@ -172,6 +175,94 @@ app.get("/flyers/:id", (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: "Unable to retrieve flyer.",
+            error: error.message
+        });
+    }
+});
+
+// Update an existing flyer while keeping unchanged fields
+app.put("/flyers/:id", (req, res) => {
+    const { id } = req.params;
+
+    const {
+        title,
+        description,
+        category,
+        event_date,
+        image_url
+    } = req.body;
+
+    try {
+        const existingFlyer = db
+            .prepare("SELECT * FROM flyers WHERE id = ?")
+            .get(id);
+
+        if (!existingFlyer) {
+            return res.status(404).json({
+                message: "Flyer not found."
+            });
+        }
+
+        const statement = db.prepare(`
+            UPDATE flyers
+            SET title = ?,
+                description = ?,
+                category = ?,
+                event_date = ?,
+                image_url = ?
+            WHERE id = ?
+        `);
+
+        statement.run(
+            title ?? existingFlyer.title,
+            description ?? existingFlyer.description,
+            category ?? existingFlyer.category,
+            event_date ?? existingFlyer.event_date,
+            image_url ?? existingFlyer.image_url,
+            id
+        );
+
+        const updatedFlyer = db
+            .prepare("SELECT * FROM flyers WHERE id = ?")
+            .get(id);
+
+        res.status(200).json({
+            message: "Flyer updated successfully.",
+            flyer: updatedFlyer
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Unable to update flyer.",
+            error: error.message
+        });
+    }
+});
+
+// Delete a flyer by ID
+app.delete("/flyers/:id", (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const existingFlyer = db
+            .prepare("SELECT * FROM flyers WHERE id = ?")
+            .get(id);
+
+        if (!existingFlyer) {
+            return res.status(404).json({
+                message: "Flyer not found."
+            });
+        }
+
+        db.prepare("DELETE FROM flyers WHERE id = ?").run(id);
+
+        res.status(200).json({
+            message: "Flyer deleted successfully."
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Unable to delete flyer.",
             error: error.message
         });
     }

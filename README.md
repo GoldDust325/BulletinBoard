@@ -104,3 +104,7 @@ The backend currently supports:
 - Create flyer
 - View all flyers
 - View flyer details
+- added PUT /flyers/:id
+- added DELETE /flyers/:id
+- verified update and delete behavior with PowerShell
+- flyer CRUD is now complete

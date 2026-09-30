@@ -1,9 +1,11 @@
 const { DatabaseSync } = require("node:sqlite");
 const path = require("path");
 
+// Always store the SQLite database inside the backend folder
 const dbPath = path.join(__dirname, "bulletinboard.db");
 const db = new DatabaseSync(dbPath);
 
+// Enforce relationships between users and flyers
 db.exec("PRAGMA foreign_keys = ON;");
 
 db.exec(`
