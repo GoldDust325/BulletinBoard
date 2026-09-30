@@ -1,9 +1,14 @@
 const express = require("express");
 const db = require("./database");
 const bcrypt = require("bcryptjs");
+const cors = require("cors");
 
 const app = express();
 const PORT = 3000;
+
+app.use(cors({
+    origin: "http://localhost:5173"
+}));
 
 app.use(express.json());
 

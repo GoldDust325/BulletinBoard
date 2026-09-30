@@ -111,3 +111,4 @@ The backend currently supports:
 - Added flyer category filtering using `GET /flyers?category=...`.
 - Tested filtering successfully with Academic and Social categories.
 - Added ownership checks so users can only edit or delete flyers they created.
+- Added CORS support for the React frontend running at `http://localhost:5173`.
