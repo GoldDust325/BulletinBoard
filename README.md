@@ -1,5 +1,81 @@
 # BulletinBoard
 An interactive virtual event board
+
+## Project Overview
+
+Cork Bored is a digital campus bulletin board that allows students to discover events, share flyers, and manage their own postings through a corkboard-style interface.
+
+## Technologies Used
+
+- Frontend: React, TypeScript, Vite, React Router
+- Backend: Node.js, Express
+- Database: SQLite
+- Authentication: bcrypt password hashing and Express session support
+- Version Control: Git and GitHub
+
+## Installation and Setup
+
+### Prerequisites
+
+- Node.js and npm
+- Git
+- A modern web browser
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/lexih209/BulletinBoard.git
+cd BulletinBoard
+```
+
+### 2. Install and Start the Backend
+
+From the project root:
+
+```bash
+cd backend
+npm install
+node server.js
+```
+
+The backend runs at http://localhost:3000.
+
+### 3. Install and Start the Frontend
+
+Open a second terminal in the main BulletinBoard project folder, then run:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open the local URL displayed by Vite, usually http://localhost:5173.
+
+**Windows PowerShell note:** If npm scripts are blocked by the execution policy, use `npm.cmd install` and `npm.cmd run dev` instead.
+
+## Features Implemented
+
+- User registration and login
+- Password hashing
+- Browse flyers stored in SQLite
+- View individual flyer details
+- Create flyers with title, description, date, location, and category
+- Optional image URLs for flyers
+- Edit and delete user-owned flyers
+- Loading and error handling
+- Logout functionality
+
+## Current Testing Status
+
+The frontend production build passes. Login, flyer creation, viewing, editing, deletion, and database persistence have been tested locally. Direct backend authorization testing remains outstanding.
+
+**Development note:** The application currently runs locally. It has not been configured for public deployment.
+
+---
+
+  
+
 ## Backend Progress
 
 ### September 15, 2026
