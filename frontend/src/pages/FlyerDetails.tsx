@@ -148,7 +148,7 @@ if (error || !flyer) {
     <p>{flyer.description}</p>
     <p>
   Date: {flyer.event_date
-    ? flyer.event_date.split("-").map((part, index, parts) =>
+    ? flyer.event_date.split("-").map((_, index, parts) =>
         index === 0 ? parts[1] : index === 1 ? parts[2] : parts[0]
       ).join("/")
     : "Not specified"}

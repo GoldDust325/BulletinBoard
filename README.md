@@ -32,34 +32,7 @@ The backend successfully displays:
 - Add flyer/event data.
 - Create API routes for viewing, adding, editing, and deleting flyers.
 
-### September 20, 2026
-
-- Added SQLite database support.
-- Created `users` and `flyers` tables.
-- Added secure user registration.
-- Added password hashing using bcryptjs.
-- Added user login authentication.
-- Tested successful login with correct credentials.
-- Tested rejection of incorrect passwords.
-- Updated Git configuration so the shared group repository is the default upstream for the `main` branch.
-
-### Current Backend Status
-
-The backend currently supports:
-
-- Express server
-- SQLite database
-- User registration
-- Hashed password storage
-- User login authentication
-
-### Next Steps
-
-- Add flyer creation route.
-- Add route to retrieve all flyers.
-- Add flyer update and delete routes.
-- Connect frontend components to the backend API.
-## Backend Progress - September 29, 2026
+### September 29, 2026
 
 - Added consistent SQLite database path using `__dirname`.
 - Enabled SQLite foreign key enforcement.
