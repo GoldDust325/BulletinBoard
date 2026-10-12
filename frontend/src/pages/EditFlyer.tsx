@@ -72,6 +72,45 @@ const isOwner =
     }
   }, [id]);
 
+async function saveFlyer(event: React.FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+  setError("");
+
+  if (!id || currentUserId === null || !isOwner) {
+    setError("You must be the flyer owner to edit this flyer.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`http://localhost:3000/flyers/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title,
+        description,
+        category,
+        event_date: eventDate,
+        location,
+        image_url: imageUrl,
+        user_id: currentUserId,
+      }),
+    });
+
+    if (!response.ok) {
+      const result = await response.json();
+      throw new Error(result.message || "Unable to update flyer.");
+    }
+
+    navigate(`/flyers/${id}`);
+  } catch (err) {
+    setError(
+      err instanceof Error ? err.message : "Something went wrong."
+    );
+  }
+}
+
   return (
     <main style={{ textAlign: "center" }}>
       <h1>Edit Flyer</h1>
@@ -82,7 +121,7 @@ const isOwner =
         <p role="alert" style={{ color: "red" }}>{error}</p>
       ) : (
         <form
-  onSubmit={(event) => event.preventDefault()}
+  onSubmit={saveFlyer}
   style={{
     display: "flex",
     flexDirection: "column",
@@ -155,7 +194,7 @@ const isOwner =
     />
   </label>
 
-  <button type="submit" disabled>
+  <button type="submit">
     Save Changes
   </button>
 </form>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 type Flyer = {
   id: number;
@@ -14,6 +14,7 @@ type Flyer = {
 
 function FlyerDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const storedUserId = sessionStorage.getItem("userId");
   const currentUserId = storedUserId ? Number(storedUserId) : null;
   const [flyer, setFlyer] = useState<Flyer | null>(null);
@@ -61,6 +62,44 @@ function FlyerDetails() {
       setLoading(false);
     }
   }, [id]);
+
+  async function handleDelete() {
+  if (!id || !flyer || !isOwner || currentUserId === null) {
+    window.alert("You can only delete your own flyers.");
+    return;
+  }
+
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this flyer? This cannot be undone."
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`http://localhost:3000/flyers/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user_id: currentUserId,
+      }),
+    });
+
+    if (!response.ok) {
+      const result = await response.json();
+      throw new Error(result.message || "Unable to delete flyer.");
+    }
+
+    navigate("/board");
+  } catch (err) {
+    window.alert(
+      err instanceof Error ? err.message : "Something went wrong."
+    );
+  }
+}
 
   if (loading) {
   return (
@@ -129,9 +168,9 @@ if (error || !flyer) {
   </button>
 </Link>
 
-    <button type="button" disabled>
-      Delete Flyer
-    </button>
+    <button type="button" onClick={handleDelete}>
+  Delete Flyer
+</button>
   </div>
 )}
 
