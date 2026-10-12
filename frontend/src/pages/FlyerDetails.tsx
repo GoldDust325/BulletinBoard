@@ -14,8 +14,13 @@ type Flyer = {
 
 function FlyerDetails() {
   const { id } = useParams();
-
+  const storedUserId = sessionStorage.getItem("userId");
+  const currentUserId = storedUserId ? Number(storedUserId) : null;
   const [flyer, setFlyer] = useState<Flyer | null>(null);
+  const isOwner =
+  flyer !== null &&
+  currentUserId !== null &&
+  flyer.created_by === currentUserId;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -110,6 +115,25 @@ if (error || !flyer) {
     : "Not specified"}
 </p>
     <p>Location: {flyer.location || "Not specified"}</p>
+     {isOwner && (
+  <div
+    style={{
+      display: "flex",
+      gap: "10px",
+      marginBottom: "20px",
+    }}
+  >
+    <Link to={`/edit/${flyer.id}`}>
+  <button type="button">
+    Edit Flyer
+  </button>
+</Link>
+
+    <button type="button" disabled>
+      Delete Flyer
+    </button>
+  </div>
+)}
 
     <Link to="/board">Back to Bulletin Board</Link>
   </main>

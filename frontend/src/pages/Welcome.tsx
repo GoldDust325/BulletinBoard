@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Welcome() {
   const navigate = useNavigate();
@@ -83,6 +83,10 @@ function Welcome() {
           {loading ? "Logging in..." : "Log In"}
         </button>
       </form>
+      <p style={{ marginTop: "20px" }}>
+        Don't have an account?{" "}
+       <Link to="/register">Create Account</Link>
+      </p>
     </main>
   );
 }

@@ -2,15 +2,28 @@ const express = require("express");
 const db = require("./database");
 const bcrypt = require("bcryptjs");
 const cors = require("cors");
+const session = require("express-session");
 
 const app = express();
 const PORT = 3000;
 
 app.use(cors({
-    origin: "http://localhost:5173"
+  origin: "http://localhost:5173",
+  credentials: true
 }));
 
 app.use(express.json());
+app.use(session({
+  secret: process.env.SESSION_SECRET || "cork-bored-local-development-only",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    maxAge: 60 * 60 * 1000
+  }
+}));
 
 app.get("/", (req, res) => {
     res.send("BulletinBoard backend is running!");
@@ -85,11 +98,31 @@ app.post("/login", async (req, res) => {
             });
         }
 
-        res.status(200).json({
-            message: "Login successful.",
-            userId: user.id,
-            username: user.username
-        });
+       
+// Record the authenticated user's ID in the server-side session.
+req.session.regenerate((error) => {
+  if (error) {
+    return res.status(500).json({
+      message: "Unable to start login session."
+    });
+  }
+
+  req.session.userId = user.id;
+
+  req.session.save((saveError) => {
+    if (saveError) {
+      return res.status(500).json({
+        message: "Unable to save login session."
+      });
+    }
+
+    res.status(200).json({
+      message: "Login successful.",
+      userId: user.id,
+      username: user.username
+    });
+  });
+});
     } catch (error) {
         res.status(500).json({
             message: "Unable to log in.",

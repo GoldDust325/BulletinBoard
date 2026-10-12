@@ -16,6 +16,13 @@ function BulletinBoard() {
   const [flyers, setFlyers] = useState<Flyer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const username = sessionStorage.getItem("username");
+
+function handleLogout() {
+  sessionStorage.removeItem("userId");
+  sessionStorage.removeItem("username");
+  window.location.href = "/";
+}
 
   useEffect(() => {
     async function fetchFlyers() {
@@ -42,6 +49,27 @@ function BulletinBoard() {
 
   return (
     <main style={{ textAlign: "center" }}>
+      <div
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "15px 25px",
+    gap: "15px",
+  }}
+>
+  <span>
+    {username ? `Welcome, ${username}!` : "Welcome, visitor!"}
+  </span>
+
+  {username ? (
+    <button type="button" onClick={handleLogout}>
+      Log Out
+    </button>
+  ) : (
+    <Link to="/">Log In</Link>
+  )}
+</div>
       <h1 className="board-title" style={{ fontSize: "80px" }}>Campus Bulletin Board</h1>
 
       <Link to="/upload" style={{margin: "0 auto", padding: "14px 32px", fontSize: "20px", width: "220px"}}>Upload Flyer</Link>
