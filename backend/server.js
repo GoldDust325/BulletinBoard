@@ -105,6 +105,7 @@ app.post("/flyers", (req, res) => {
         description,
         category,
         event_date,
+        location,
         image_url,
         created_by
     } = req.body;
@@ -134,10 +135,11 @@ if (category && typeof category !== "string") {
                 description,
                 category,
                 event_date,
+                location,
                 image_url,
                 created_by
             )
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         `);
 
         const result = statement.run(
@@ -145,6 +147,7 @@ if (category && typeof category !== "string") {
             description || null,
             category || null,
             event_date || null,
+            location || null,
             image_url || null,
             created_by
         );
@@ -225,6 +228,7 @@ app.put("/flyers/:id", (req, res) => {
         description,
         category,
         event_date,
+        location,
         image_url,
         user_id
     } = req.body;
@@ -252,6 +256,7 @@ app.put("/flyers/:id", (req, res) => {
                 description = ?,
                 category = ?,
                 event_date = ?,
+                location = ?,
                 image_url = ?
             WHERE id = ?
         `);
@@ -261,6 +266,7 @@ app.put("/flyers/:id", (req, res) => {
             description ?? existingFlyer.description,
             category ?? existingFlyer.category,
             event_date ?? existingFlyer.event_date,
+            location ?? existingFlyer.location,
             image_url ?? existingFlyer.image_url,
             id
         );

@@ -22,11 +22,26 @@ db.exec(`
         description TEXT,
         category TEXT,
         event_date TEXT,
+        location TEXT,
         image_url TEXT,
         created_by INTEGER,
         FOREIGN KEY (created_by) REFERENCES users(id)
     );
 `);
+
+// Add location to existing databases without deleting saved flyers.
+const flyerColumns = db
+  .prepare("PRAGMA table_info(flyers)")
+  .all();
+
+const hasLocation = flyerColumns.some(
+  (column) => column.name === "location"
+);
+
+if (!hasLocation) {
+  db.exec("ALTER TABLE flyers ADD COLUMN location TEXT;");
+  console.log("Added location column to flyers table.");
+}
 
 console.log("Database initialized successfully.");
 
