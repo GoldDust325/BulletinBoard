@@ -79,7 +79,7 @@ function Welcome() {
          </p>
       )}
 
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading} style={{ alignSelf: "center" }}>
           {loading ? "Logging in..." : "Log In"}
         </button>
       </form>

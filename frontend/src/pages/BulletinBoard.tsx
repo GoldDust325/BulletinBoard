@@ -17,6 +17,7 @@ function BulletinBoard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [showPastFlyers, setShowPastFlyers] = useState(false);
   const username = sessionStorage.getItem("username");
 
 function handleLogout() {
@@ -48,15 +49,26 @@ function handleLogout() {
     fetchFlyers();
   }, []);
 
-  const filteredFlyers =
-  selectedCategory === "All"
-    ? flyers
-    : flyers.filter(
-        (flyer) => (flyer.category ?? "General") === selectedCategory
-      );
+const today = new Date();
+const todayString = `${today.getFullYear()}-${String(
+  today.getMonth() + 1
+).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+const filteredFlyers = flyers.filter((flyer) => {
+  const matchesCategory =
+    selectedCategory === "All" ||
+    (flyer.category ?? "General") === selectedCategory;
+
+  const isPast =
+    flyer.event_date !== null && flyer.event_date < todayString;
+
+  const matchesDateFilter = showPastFlyers ? isPast : !isPast;
+
+  return matchesCategory && matchesDateFilter;
+});
 
   return (
-    <main style={{ textAlign: "center" }}>
+    <main className="board-page" style={{ textAlign: "center" }}>
       <div
   style={{
     display: "flex",
@@ -78,9 +90,47 @@ function handleLogout() {
     <Link to="/">Log In</Link>
   )}
 </div>
-      <h1 className="board-title" style={{ fontSize: "80px" }}>Campus Bulletin Board</h1>
+      <h1
+  className="board-title"
+  style={{
+    fontSize: "80px",
+    marginTop: "0",
+  }}
+>Campus Bulletin Board</h1>
 
-      <Link to="/upload" style={{margin: "0 auto", padding: "14px 32px", fontSize: "20px", width: "220px"}}>Upload Flyer</Link>
+<div
+  style={{
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "15px",
+    marginBottom: "20px",
+  }}
+>
+  <Link
+    to="/upload"
+    style={{
+      padding: "14px 32px",
+      fontSize: "20px",
+      width: "220px",
+    }}
+  >
+    Upload Flyer
+  </Link>
+
+  <button
+    type="button"
+    onClick={() => setShowPastFlyers(!showPastFlyers)}
+    style={{
+      padding: "14px 32px",
+      fontSize: "20px",
+      width: "220px",
+    }}
+  >
+    {showPastFlyers ? "Current Flyers" : "Past Flyers"}
+  </button>
+</div>
 
       <label className="category-filter">
         Filter by category:

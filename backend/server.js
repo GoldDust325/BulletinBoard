@@ -3,9 +3,35 @@ const db = require("./database");
 const bcrypt = require("bcryptjs");
 const cors = require("cors");
 const session = require("express-session");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
 const app = express();
 const PORT = 3000;
+
+const uploadDirectory = path.join(__dirname, "uploads");
+
+if (!fs.existsSync(uploadDirectory)) {
+    fs.mkdirSync(uploadDirectory);
+}
+
+const storage = multer.diskStorage({
+    destination: (req, file, callback) => {
+        callback(null, uploadDirectory);
+    },
+    filename: (req, file, callback) => {
+        const uniqueName = `${Date.now()}-${file.originalname}`;
+        callback(null, uniqueName);
+    },
+});
+
+const upload = multer({
+    storage,
+    limits: {
+        fileSize: 5 * 1024 * 1024,
+    },
+});
 
 app.use(cors({
   origin: "http://localhost:5173",
@@ -13,6 +39,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use("/uploads", express.static(uploadDirectory));
 app.use(session({
   secret: process.env.SESSION_SECRET || "cork-bored-local-development-only",
   resave: false,
@@ -132,16 +159,19 @@ req.session.regenerate((error) => {
 });
 
 // Create a new flyer
-app.post("/flyers", (req, res) => {
+app.post("/flyers", upload.single("image"), (req, res) => {
     const {
         title,
         description,
         category,
         event_date,
         location,
-        image_url,
         created_by
     } = req.body;
+
+    const image_url = req.file
+    ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
+    : null;
 
     if (!title || title.trim() === "") {
     return res.status(400).json({

@@ -3,3 +3,4 @@ backend/node_modules/
 backend/bulletinboard.db
 bulletinboard.db
 frontend/dist/
+backend/uploads/

@@ -10,7 +10,7 @@ function UploadFlyer() {
   const [eventDate, setEventDate] = useState("");
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState("General");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -30,21 +30,23 @@ function UploadFlyer() {
   setLoading(true);
 
   try {
-    const response = await fetch("http://localhost:3000/flyers", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title,
-        description,
-        category,
-        event_date: eventDate,
-        location,
-        image_url: imageUrl || null,
-        created_by: userId,
-      }),
-    });
+const formData = new FormData();
+
+formData.append("title", title);
+formData.append("description", description);
+formData.append("category", category);
+formData.append("event_date", eventDate);
+formData.append("location", location);
+formData.append("created_by", String(userId));
+
+if (imageFile) {
+  formData.append("image", imageFile);
+}
+
+const response = await fetch("http://localhost:3000/flyers", {
+  method: "POST",
+  body: formData,
+});
 
     const data = await response.json();
 
@@ -121,15 +123,16 @@ function UploadFlyer() {
         </select>
       </label>
 
-        <label>
-          Image URL (optional)
-          <input
-            type="url"
-            value={imageUrl}
-            onChange={(event) => setImageUrl(event.target.value)}
-            placeholder="https://example.com/flyer.jpg"
-          />
-        </label>
+      <label>
+        Flyer image
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(event) =>
+            setImageFile(event.target.files?.[0] ?? null)
+          }
+        />
+      </label>
 
       {error && (
         <p role="alert" style={{ color: "red" }}>
