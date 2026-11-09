@@ -63,7 +63,7 @@ function UploadFlyer() {
 }
 
   return (
-    <main style={{ textAlign: "center" }}>
+    <main className="upload-page">
       <h1>Upload a Flyer</h1>
 
       <form onSubmit={handleSubmit}>

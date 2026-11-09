@@ -119,7 +119,7 @@ if (error || !flyer) {
 }
 
   return (
-  <main>
+  <main className="flyer-details">
     {flyer.image_url ? (
       <img
         src={flyer.image_url}
@@ -147,6 +147,9 @@ if (error || !flyer) {
     <h1>{flyer.title}</h1>
     <p>{flyer.description}</p>
     <p>
+      Category: {flyer.category || "General"}
+    </p>
+    <p>
   Date: {flyer.event_date
     ? flyer.event_date.split("-").map((_, index, parts) =>
         index === 0 ? parts[1] : index === 1 ? parts[2] : parts[0]
@@ -158,6 +161,7 @@ if (error || !flyer) {
   <div
     style={{
       display: "flex",
+      justifyContent: "center",
       gap: "10px",
       marginBottom: "20px",
     }}

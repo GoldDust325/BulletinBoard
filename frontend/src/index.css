@@ -125,3 +125,65 @@ textarea {
   -webkit-text-stroke: 1px white;
   text-shadow: 2px 2px 4px #0008;
 }
+
+.flyer-details {
+  text-align: center;
+}
+
+.flyer-details h1 {
+  font-size: 42px;
+  margin-bottom: 24px;
+}
+
+.flyer-details p {
+  font-size: 22px;
+  margin: 14px 0;
+}
+
+.flyer-details img,
+.flyer-details > div {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.flyer-details > a {
+  margin: 20px auto;
+}
+
+.upload-page {
+  text-align: center;
+}
+
+.upload-page form {
+  margin: 0 auto;
+}
+
+.upload-page label {
+  text-align: left;
+  font-size: 20px;
+}
+
+.upload-page button {
+  align-self: center;
+}
+
+.upload-page > a {
+  margin: 20px auto;
+}
+
+.category-filter {
+  font-size: 22px;
+  text-align: center;
+}
+
+.category-filter select {
+  width: 220px;
+  height: 36px;
+  padding: 4px 8px;
+  font-size: 16px;
+}
+
+.welcome-message {
+  font-size: 24px;
+  font-weight: bold;
+}

@@ -16,6 +16,7 @@ function BulletinBoard() {
   const [flyers, setFlyers] = useState<Flyer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const username = sessionStorage.getItem("username");
 
 function handleLogout() {
@@ -47,6 +48,13 @@ function handleLogout() {
     fetchFlyers();
   }, []);
 
+  const filteredFlyers =
+  selectedCategory === "All"
+    ? flyers
+    : flyers.filter(
+        (flyer) => (flyer.category ?? "General") === selectedCategory
+      );
+
   return (
     <main style={{ textAlign: "center" }}>
       <div
@@ -58,9 +66,9 @@ function handleLogout() {
     gap: "15px",
   }}
 >
-  <span>
-    {username ? `Welcome, ${username}!` : "Welcome, visitor!"}
-  </span>
+<span className="welcome-message">
+  {username ? `Welcome, ${username}!` : "Welcome, visitor!"}
+</span>
 
   {username ? (
     <button type="button" onClick={handleLogout}>
@@ -74,6 +82,21 @@ function handleLogout() {
 
       <Link to="/upload" style={{margin: "0 auto", padding: "14px 32px", fontSize: "20px", width: "220px"}}>Upload Flyer</Link>
 
+      <label className="category-filter">
+        Filter by category:
+        <select
+          value={selectedCategory}
+          onChange={(event) => setSelectedCategory(event.target.value)}
+        >
+          <option value="All">All Categories</option>
+          <option value="General">General</option>
+          <option value="Academic">Academic</option>
+          <option value="Clubs">Clubs & Organizations</option>
+          <option value="Events">Campus Events</option>
+          <option value="Other">Other</option>
+        </select>
+      </label>
+
       <section>
         {loading && <p>Loading flyers...</p>}
 
@@ -83,10 +106,10 @@ function handleLogout() {
           </p>
 )}
 
-{!loading && !error && flyers.length === 0 && (
+{!loading && !error && filteredFlyers.length === 0 && (
   <p>No flyers available yet.</p>
 )}
-{flyers.map((flyer) => (
+{filteredFlyers.map((flyer) => (
     <article key={flyer.id}>
         <Link to={`/flyers/${flyer.id}`}>
           {flyer.image_url ? (
