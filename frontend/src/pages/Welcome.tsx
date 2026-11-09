@@ -19,6 +19,7 @@ function Welcome() {
   try {
     const response = await fetch("http://localhost:3000/login", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },

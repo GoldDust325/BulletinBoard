@@ -18,11 +18,27 @@ function BulletinBoard() {
   const [error, setError] = useState<string | null>(null);
   const username = sessionStorage.getItem("username");
 
-function handleLogout() {
-  sessionStorage.removeItem("userId");
-  sessionStorage.removeItem("username");
-  window.location.href = "/";
+
+async function handleLogout() {
+    try {
+        const response = await fetch("http://localhost:3000/logout", {
+            method: "POST",
+            credentials: "include",
+        });
+
+        if (!response.ok) {
+            throw new Error("Unable to log out.");
+        }
+
+        sessionStorage.removeItem("userId");
+        sessionStorage.removeItem("username");
+        window.location.href = "/";
+    } catch (error) {
+        console.error("Logout failed:", error);
+        window.alert("Logout failed. Please try again.");
+    }
 }
+
 
   useEffect(() => {
     async function fetchFlyers() {
@@ -72,7 +88,19 @@ function handleLogout() {
 </div>
       <h1 className="board-title" style={{ fontSize: "80px" }}>Campus Bulletin Board</h1>
 
-      <Link to="/upload" style={{margin: "0 auto", padding: "14px 32px", fontSize: "20px", width: "220px"}}>Upload Flyer</Link>
+      {username && (
+  <Link
+    to="/upload"
+    style={{
+      margin: "0 auto",
+      padding: "14px 32px",
+      fontSize: "20px",
+      width: "220px"
+    }}
+  >
+    Upload Flyer
+  </Link>
+)}
 
       <section>
         {loading && <p>Loading flyers...</p>}

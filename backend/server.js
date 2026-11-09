@@ -131,17 +131,53 @@ req.session.regenerate((error) => {
     }
 });
 
+// Require an authenticated session for protected routes
+function requireAuth(req, res, next) {
+    if (!req.session || !req.session.userId) {
+        return res.status(401).json({
+            message: "You must be logged in to perform this action."
+        });
+    }
+
+    next();
+}
+
+
+ // Log out and destroy the authenticated session
+app.post("/logout", (req, res) => {
+    req.session.destroy((error) => {
+        if (error) {
+            return res.status(500).json({
+                message: "Unable to log out."
+            });
+        }
+
+        res.clearCookie("connect.sid", {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            path: "/"
+        });
+
+        res.status(200).json({
+            message: "Logout successful."
+        });
+    });
+});
+
+
 // Create a new flyer
-app.post("/flyers", (req, res) => {
+app.post("/flyers", requireAuth, (req, res) => {
     const {
-        title,
-        description,
-        category,
-        event_date,
-        location,
-        image_url,
-        created_by
-    } = req.body;
+    title,
+    description,
+    category,
+    event_date,
+    location,
+    image_url
+} = req.body;
+
+const created_by = req.session.userId;
 
     if (!title || title.trim() === "") {
     return res.status(400).json({
@@ -149,11 +185,6 @@ app.post("/flyers", (req, res) => {
     });
 }
 
-if (!created_by) {
-    return res.status(400).json({
-        message: "created_by is required."
-    });
-}
 
 if (category && typeof category !== "string") {
     return res.status(400).json({
@@ -253,18 +284,17 @@ app.get("/flyers/:id", (req, res) => {
 });
 
 // Update an existing flyer while keeping unchanged fields
-app.put("/flyers/:id", (req, res) => {
+app.put("/flyers/:id", requireAuth, (req, res) => {
     const { id } = req.params;
 
     const {
-        title,
-        description,
-        category,
-        event_date,
-        location,
-        image_url,
-        user_id
-    } = req.body;
+    title,
+    description,
+    category,
+    event_date,
+    location,
+    image_url
+} = req.body;
 
     try {
         const existingFlyer = db
@@ -277,7 +307,7 @@ app.put("/flyers/:id", (req, res) => {
             });
         }
 
-        if (existingFlyer.created_by !== user_id) {
+        if (existingFlyer.created_by !== req.session.userId) {
     return res.status(403).json({
         message: "You can only edit your own flyers."
     });
@@ -322,9 +352,8 @@ app.put("/flyers/:id", (req, res) => {
 });
 
 // Delete a flyer by ID
-app.delete("/flyers/:id", (req, res) => {
+app.delete("/flyers/:id", requireAuth, (req, res) => {
     const { id } = req.params;
-    const { user_id } = req.body;
 
     try {
         const existingFlyer = db
@@ -336,7 +365,7 @@ app.delete("/flyers/:id", (req, res) => {
                 message: "Flyer not found."
             });
         }
-        if (existingFlyer.created_by !== user_id) {
+        if (existingFlyer.created_by !== req.session.userId) {
     return res.status(403).json({
         message: "You can only delete your own flyers."
     });

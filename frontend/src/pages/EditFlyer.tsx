@@ -83,20 +83,20 @@ async function saveFlyer(event: React.FormEvent<HTMLFormElement>) {
 
   try {
     const response = await fetch(`http://localhost:3000/flyers/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title,
-        description,
-        category,
-        event_date: eventDate,
-        location,
-        image_url: imageUrl,
-        user_id: currentUserId,
-      }),
-    });
+  method: "PUT",
+  credentials: "include",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    title,
+    description,
+    category,
+    event_date: eventDate,
+    location,
+    image_url: imageUrl,
+  }),
+});
 
     if (!response.ok) {
       const result = await response.json();

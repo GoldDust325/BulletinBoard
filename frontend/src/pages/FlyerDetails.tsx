@@ -79,14 +79,9 @@ function FlyerDetails() {
 
   try {
     const response = await fetch(`http://localhost:3000/flyers/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        user_id: currentUserId,
-      }),
-    });
+  method: "DELETE",
+  credentials: "include",
+});
 
     if (!response.ok) {
       const result = await response.json();

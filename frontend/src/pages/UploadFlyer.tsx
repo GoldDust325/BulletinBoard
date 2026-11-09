@@ -32,6 +32,7 @@ function UploadFlyer() {
   try {
     const response = await fetch("http://localhost:3000/flyers", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -42,7 +43,6 @@ function UploadFlyer() {
         event_date: eventDate,
         location,
         image_url: imageUrl || null,
-        created_by: userId,
       }),
     });
 
