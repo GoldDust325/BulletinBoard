@@ -16,6 +16,8 @@ function BulletinBoard() {
   const [flyers, setFlyers] = useState<Flyer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [showPastFlyers, setShowPastFlyers] = useState(false);
   const username = sessionStorage.getItem("username");
 
 
@@ -63,8 +65,26 @@ async function handleLogout() {
     fetchFlyers();
   }, []);
 
+const today = new Date();
+const todayString = `${today.getFullYear()}-${String(
+  today.getMonth() + 1
+).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+const filteredFlyers = flyers.filter((flyer) => {
+  const matchesCategory =
+    selectedCategory === "All" ||
+    (flyer.category ?? "General") === selectedCategory;
+
+  const isPast =
+    flyer.event_date !== null && flyer.event_date < todayString;
+
+  const matchesDateFilter = showPastFlyers ? isPast : !isPast;
+
+  return matchesCategory && matchesDateFilter;
+});
+
   return (
-    <main style={{ textAlign: "center" }}>
+    <main className="board-page" style={{ textAlign: "center" }}>
       <div
   style={{
     display: "flex",
@@ -74,9 +94,9 @@ async function handleLogout() {
     gap: "15px",
   }}
 >
-  <span>
-    {username ? `Welcome, ${username}!` : "Welcome, visitor!"}
-  </span>
+<span className="welcome-message">
+  {username ? `Welcome, ${username}!` : "Welcome, visitor!"}
+</span>
 
   {username ? (
     <button type="button" onClick={handleLogout}>
@@ -86,7 +106,13 @@ async function handleLogout() {
     <Link to="/">Log In</Link>
   )}
 </div>
-      <h1 className="board-title" style={{ fontSize: "80px" }}>Campus Bulletin Board</h1>
+      <h1
+  className="board-title"
+  style={{
+    fontSize: "80px",
+    marginTop: "0",
+  }}
+>Campus Bulletin Board</h1>
 
       {username && (
   <Link
@@ -102,6 +128,34 @@ async function handleLogout() {
   </Link>
 )}
 
+  <button
+    type="button"
+    onClick={() => setShowPastFlyers(!showPastFlyers)}
+    style={{
+      padding: "14px 32px",
+      fontSize: "20px",
+      width: "220px",
+    }}
+  >
+    {showPastFlyers ? "Current Flyers" : "Past Flyers"}
+  </button>
+
+
+      <label className="category-filter">
+        Filter by category:
+        <select
+          value={selectedCategory}
+          onChange={(event) => setSelectedCategory(event.target.value)}
+        >
+          <option value="All">All Categories</option>
+          <option value="General">General</option>
+          <option value="Academic">Academic</option>
+          <option value="Clubs">Clubs & Organizations</option>
+          <option value="Events">Campus Events</option>
+          <option value="Other">Other</option>
+        </select>
+      </label>
+
       <section>
         {loading && <p>Loading flyers...</p>}
 
@@ -111,10 +165,10 @@ async function handleLogout() {
           </p>
 )}
 
-{!loading && !error && flyers.length === 0 && (
+{!loading && !error && filteredFlyers.length === 0 && (
   <p>No flyers available yet.</p>
 )}
-{flyers.map((flyer) => (
+{filteredFlyers.map((flyer) => (
     <article key={flyer.id}>
         <Link to={`/flyers/${flyer.id}`}>
           {flyer.image_url ? (

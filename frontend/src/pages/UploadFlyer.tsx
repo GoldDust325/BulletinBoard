@@ -7,10 +7,11 @@ function UploadFlyer() {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [expirationDate, setExpirationDate] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState("General");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -18,33 +19,31 @@ function UploadFlyer() {
   event.preventDefault();
 
   setError("");
-
-  const storedUserId = sessionStorage.getItem("userId");
-  const userId = Number(storedUserId);
-
-  if (!storedUserId || !Number.isInteger(userId) || userId <= 0) {
-    setError("Please log in before uploading a flyer.");
-    return;
-  }
-
   setLoading(true);
 
   try {
-    const response = await fetch("http://localhost:3000/flyers", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title,
-        description,
-        category,
-        event_date: eventDate,
-        location,
-        image_url: imageUrl || null,
-      }),
-    });
+
+const formData = new FormData();
+
+formData.append("title", title);
+formData.append("description", description);
+formData.append("category", category);
+formData.append("event_date", eventDate);
+if (expirationDate) {
+formData.append("expiration_date", expirationDate);
+}
+formData.append("location", location);
+
+if (imageFile) {
+  formData.append("image", imageFile);
+}
+
+const response = await fetch("http://localhost:3000/flyers", {
+  method: "POST",
+  credentials: "include",
+  body: formData,
+});
+
 
     const data = await response.json();
 
@@ -63,7 +62,7 @@ function UploadFlyer() {
 }
 
   return (
-    <main style={{ textAlign: "center" }}>
+    <main className="upload-page">
       <h1>Upload a Flyer</h1>
 
       <form onSubmit={handleSubmit}>
@@ -96,6 +95,16 @@ function UploadFlyer() {
           />
         </label>
 
+      <label>
+         Expiration Date (Optional)
+          <input
+           type="date"
+            value={expirationDate}
+            onChange={(event) => setExpirationDate(event.target.value)}
+          />
+        </label>
+
+
         <label>
           Location
           <input
@@ -121,15 +130,16 @@ function UploadFlyer() {
         </select>
       </label>
 
-        <label>
-          Image URL (optional)
-          <input
-            type="url"
-            value={imageUrl}
-            onChange={(event) => setImageUrl(event.target.value)}
-            placeholder="https://example.com/flyer.jpg"
-          />
-        </label>
+      <label>
+        Flyer image
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(event) =>
+            setImageFile(event.target.files?.[0] ?? null)
+          }
+        />
+      </label>
 
       {error && (
         <p role="alert" style={{ color: "red" }}>
