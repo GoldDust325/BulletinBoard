@@ -173,6 +173,7 @@ app.post("/flyers", requireAuth, (req, res) => {
     description,
     category,
     event_date,
+    expiration_date,
     location,
     image_url
 } = req.body;
@@ -192,29 +193,53 @@ if (category && typeof category !== "string") {
     });
 }
 
+// Validate an optional expiration date
+if (expiration_date != null && expiration_date !== "") {
+    const validFormat =
+        typeof expiration_date === "string" &&
+        /^\d{4}-\d{2}-\d{2}$/.test(expiration_date);
+
+    const parsedDate = validFormat
+        ? new Date(`${expiration_date}T00:00:00Z`)
+        : null;
+
+    const validDate =
+        parsedDate !== null &&
+        !Number.isNaN(parsedDate.getTime()) &&
+        parsedDate.toISOString().slice(0, 10) === expiration_date;
+
+    if (!validDate) {
+        return res.status(400).json({
+            message: "Expiration date must be a valid date in YYYY-MM-DD format."
+        });
+    }
+}
+
     try {
         const statement = db.prepare(`
-            INSERT INTO flyers (
-                title,
-                description,
-                category,
-                event_date,
-                location,
-                image_url,
-                created_by
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `);
+    INSERT INTO flyers (
+        title,
+        description,
+        category,
+        event_date,
+        expiration_date,
+        location,
+        image_url,
+        created_by
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+`);
 
         const result = statement.run(
-            title,
-            description || null,
-            category || null,
-            event_date || null,
-            location || null,
-            image_url || null,
-            created_by
-        );
+    title,
+    description || null,
+    category || null,
+    event_date || null,
+    expiration_date || null,
+    location || null,
+    image_url || null,
+    created_by
+);
 
         res.status(201).json({
             message: "Flyer created successfully.",
@@ -229,7 +254,8 @@ if (category && typeof category !== "string") {
     }
 });
 
-// Retrieve all flyers, with optional category filtering
+
+ // Retrieve active flyers, with optional category filtering
 app.get("/flyers", (req, res) => {
     const { category } = req.query;
 
@@ -237,15 +263,22 @@ app.get("/flyers", (req, res) => {
         let flyers;
 
         if (category) {
-            flyers = db
-                .prepare(
-                    "SELECT * FROM flyers WHERE category = ? ORDER BY id DESC"
-                )
-                .all(category);
+            flyers = db.prepare(`
+                SELECT * FROM flyers
+                WHERE category = ?
+                  AND (
+                      expiration_date IS NULL
+                      OR expiration_date >= date('now', 'localtime')
+                  )
+                ORDER BY id DESC
+            `).all(category);
         } else {
-            flyers = db
-                .prepare("SELECT * FROM flyers ORDER BY id DESC")
-                .all();
+            flyers = db.prepare(`
+                SELECT * FROM flyers
+                WHERE expiration_date IS NULL
+                   OR expiration_date >= date('now', 'localtime')
+                ORDER BY id DESC
+            `).all();
         }
 
         res.status(200).json(flyers);
@@ -257,6 +290,7 @@ app.get("/flyers", (req, res) => {
         });
     }
 });
+
 
 // Retrieve a single flyer by ID
 app.get("/flyers/:id", (req, res) => {
@@ -292,6 +326,7 @@ app.put("/flyers/:id", requireAuth, (req, res) => {
     description,
     category,
     event_date,
+    expiration_date,
     location,
     image_url
 } = req.body;
@@ -307,32 +342,30 @@ app.put("/flyers/:id", requireAuth, (req, res) => {
             });
         }
 
-        if (existingFlyer.created_by !== req.session.userId) {
-    return res.status(403).json({
-        message: "You can only edit your own flyers."
-    });
-}
-
         const statement = db.prepare(`
-            UPDATE flyers
-            SET title = ?,
-                description = ?,
-                category = ?,
-                event_date = ?,
-                location = ?,
-                image_url = ?
-            WHERE id = ?
-        `);
+    UPDATE flyers
+    SET title = ?,
+        description = ?,
+        category = ?,
+        event_date = ?,
+        expiration_date = ?,
+        location = ?,
+        image_url = ?
+    WHERE id = ?
+`);
 
         statement.run(
-            title ?? existingFlyer.title,
-            description ?? existingFlyer.description,
-            category ?? existingFlyer.category,
-            event_date ?? existingFlyer.event_date,
-            location ?? existingFlyer.location,
-            image_url ?? existingFlyer.image_url,
-            id
-        );
+    title ?? existingFlyer.title,
+    description ?? existingFlyer.description,
+    category ?? existingFlyer.category,
+    event_date ?? existingFlyer.event_date,
+    expiration_date === undefined
+    ? existingFlyer.expiration_date
+    : expiration_date || null,
+    location ?? existingFlyer.location,
+    image_url ?? existingFlyer.image_url,
+    id
+);
 
         const updatedFlyer = db
             .prepare("SELECT * FROM flyers WHERE id = ?")
@@ -365,6 +398,35 @@ app.delete("/flyers/:id", requireAuth, (req, res) => {
                 message: "Flyer not found."
             });
         }
+
+if (existingFlyer.created_by !== req.session.userId) {
+    return res.status(403).json({
+        message: "You can only edit your own flyers."
+    });
+}
+
+// Validate an expiration date when one is provided
+if (expiration_date !== undefined && expiration_date !== null && expiration_date !== "") {
+    const validFormat =
+        typeof expiration_date === "string" &&
+        /^\d{4}-\d{2}-\d{2}$/.test(expiration_date);
+
+    const parsedDate = validFormat
+        ? new Date(`${expiration_date}T00:00:00Z`)
+        : null;
+
+    const validDate =
+        parsedDate !== null &&
+        !Number.isNaN(parsedDate.getTime()) &&
+        parsedDate.toISOString().slice(0, 10) === expiration_date;
+
+    if (!validDate) {
+        return res.status(400).json({
+            message: "Expiration date must be a valid date in YYYY-MM-DD format."
+        });
+    }
+}
+
         if (existingFlyer.created_by !== req.session.userId) {
     return res.status(403).json({
         message: "You can only delete your own flyers."

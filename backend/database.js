@@ -22,6 +22,7 @@ db.exec(`
         description TEXT,
         category TEXT,
         event_date TEXT,
+        expiration_date TEXT,
         location TEXT,
         image_url TEXT,
         created_by INTEGER,
@@ -42,6 +43,18 @@ if (!hasLocation) {
   db.exec("ALTER TABLE flyers ADD COLUMN location TEXT;");
   console.log("Added location column to flyers table.");
 }
+
+
+ // Add expiration dates without deleting existing flyers
+const hasExpirationDate = flyerColumns.some(
+  (column) => column.name === "expiration_date"
+);
+
+if (!hasExpirationDate) {
+  db.exec("ALTER TABLE flyers ADD COLUMN expiration_date TEXT;");
+  console.log("Added expiration_date column to flyers table.");
+}
+
 
 console.log("Database initialized successfully.");
 
