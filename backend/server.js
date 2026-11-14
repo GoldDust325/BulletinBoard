@@ -211,6 +211,32 @@ function requireAuth(req, res, next) {
     next();
 }
 
+ // Return the current authenticated user's information
+app.get("/me", requireAuth, (req, res) => {
+    try {
+        const user = db
+            .prepare("SELECT id, username, email FROM users WHERE id = ?")
+            .get(req.session.userId);
+
+        if (!user) {
+            return res.status(401).json({
+                message: "User session is no longer valid."
+            });
+        }
+
+        res.status(200).json({
+            id: user.id,
+            username: user.username,
+            isAdmin: isAdminEmail(user.email)
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Unable to retrieve user information."
+        });
+    }
+});
+
 
  // Log out and destroy the authenticated session
 app.post("/logout", (req, res) => {
