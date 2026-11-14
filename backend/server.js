@@ -65,6 +65,14 @@ app.post("/register", async (req, res) => {
         });
     }
 
+
+if (isAdminEmail(email)) {
+  return res.status(403).json({
+    message: "This email address is reserved for an administrator account."
+  });
+}
+
+
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -158,6 +166,40 @@ req.session.regenerate((error) => {
     }
 });
 
+const ADMIN_EMAILS = new Set(
+  (process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map(email => email.trim().toLowerCase())
+    .filter(Boolean)
+);
+
+function isAdminEmail(email) {
+  return typeof email === "string" &&
+    ADMIN_EMAILS.has(email.trim().toLowerCase());
+}
+
+function requireAdmin(req, res, next) {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({
+      message: "You must be logged in."
+    });
+  }
+
+  const user = db
+    .prepare("SELECT email FROM users WHERE id = ?")
+    .get(req.session.userId);
+
+  if (!user || !isAdminEmail(user.email)) {
+    return res.status(403).json({
+      message: "Administrator access required."
+    });
+  }
+
+  next();
+}
+
+
+
 // Require an authenticated session for protected routes
 function requireAuth(req, res, next) {
     if (!req.session || !req.session.userId) {
@@ -168,6 +210,32 @@ function requireAuth(req, res, next) {
 
     next();
 }
+
+ // Return the current authenticated user's information
+app.get("/me", requireAuth, (req, res) => {
+    try {
+        const user = db
+            .prepare("SELECT id, username, email FROM users WHERE id = ?")
+            .get(req.session.userId);
+
+        if (!user) {
+            return res.status(401).json({
+                message: "User session is no longer valid."
+            });
+        }
+
+        res.status(200).json({
+            id: user.id,
+            username: user.username,
+            isAdmin: isAdminEmail(user.email)
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Unable to retrieve user information."
+        });
+    }
+});
 
 
  // Log out and destroy the authenticated session
@@ -286,31 +354,42 @@ if (expiration_date != null && expiration_date !== "") {
 });
 
 
- // Retrieve active flyers, with optional category filtering
+
+ // Retrieve active flyers with optional category and keyword filtering
 app.get("/flyers", (req, res) => {
-    const { category } = req.query;
+    const { category, search } = req.query;
 
     try {
-        let flyers;
+        let query = `
+            SELECT * FROM flyers
+            WHERE (
+                expiration_date IS NULL
+                OR expiration_date >= date('now', 'localtime')
+            )
+        `;
 
-        if (category) {
-            flyers = db.prepare(`
-                SELECT * FROM flyers
-                WHERE category = ?
-                  AND (
-                      expiration_date IS NULL
-                      OR expiration_date >= date('now', 'localtime')
-                  )
-                ORDER BY id DESC
-            `).all(category);
-        } else {
-            flyers = db.prepare(`
-                SELECT * FROM flyers
-                WHERE expiration_date IS NULL
-                   OR expiration_date >= date('now', 'localtime')
-                ORDER BY id DESC
-            `).all();
+        const params = [];
+
+        if (typeof category === "string" && category.trim()) {
+            query += " AND category = ?";
+            params.push(category.trim());
         }
+
+        if (typeof search === "string" && search.trim()) {
+            query += `
+                AND (
+                    title LIKE ? COLLATE NOCASE
+                    OR description LIKE ? COLLATE NOCASE
+                )
+            `;
+
+            const keyword = `%${search.trim()}%`;
+            params.push(keyword, keyword);
+        }
+
+        query += " ORDER BY id DESC";
+
+        const flyers = db.prepare(query).all(...params);
 
         res.status(200).json(flyers);
 
@@ -321,6 +400,7 @@ app.get("/flyers", (req, res) => {
         });
     }
 });
+
 
 
 // Retrieve a single flyer by ID
@@ -430,40 +510,17 @@ app.delete("/flyers/:id", requireAuth, (req, res) => {
             });
         }
 
-if (existingFlyer.created_by !== req.session.userId) {
-    return res.status(403).json({
-        message: "You can only edit your own flyers."
-    });
-}
-
-// Validate an expiration date when one is provided
-if (expiration_date !== undefined && expiration_date !== null && expiration_date !== "") {
-    const validFormat =
-        typeof expiration_date === "string" &&
-        /^\d{4}-\d{2}-\d{2}$/.test(expiration_date);
-
-    const parsedDate = validFormat
-        ? new Date(`${expiration_date}T00:00:00Z`)
-        : null;
-
-    const validDate =
-        parsedDate !== null &&
-        !Number.isNaN(parsedDate.getTime()) &&
-        parsedDate.toISOString().slice(0, 10) === expiration_date;
-
-    if (!validDate) {
-        return res.status(400).json({
-            message: "Expiration date must be a valid date in YYYY-MM-DD format."
-        });
-    }
-}
-
-        if (existingFlyer.created_by !== req.session.userId) {
+if (
+  existingFlyer.created_by !== req.session.userId &&
+  !isAdminEmail(
+    db.prepare("SELECT email FROM users WHERE id = ?")
+      .get(req.session.userId)?.email
+  )
+) {
     return res.status(403).json({
         message: "You can only delete your own flyers."
     });
 }
-
         db.prepare("DELETE FROM flyers WHERE id = ?").run(id);
 
         res.status(200).json({

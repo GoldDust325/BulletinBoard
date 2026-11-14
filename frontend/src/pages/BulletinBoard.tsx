@@ -17,6 +17,7 @@ function BulletinBoard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [searchKeyword, setSearchKeyword] = useState("");
   const [showPastFlyers, setShowPastFlyers] = useState(false);
   const username = sessionStorage.getItem("username");
 
@@ -79,8 +80,13 @@ const filteredFlyers = flyers.filter((flyer) => {
     flyer.event_date !== null && flyer.event_date < todayString;
 
   const matchesDateFilter = showPastFlyers ? isPast : !isPast;
+  const keyword = searchKeyword.trim().toLowerCase();
 
-  return matchesCategory && matchesDateFilter;
+const matchesKeyword =
+  keyword === "" ||
+  flyer.title.toLowerCase().includes(keyword) ||
+  (flyer.description ?? "").toLowerCase().includes(keyword);
+  return matchesCategory && matchesDateFilter && matchesKeyword;
 });
 
   return (
@@ -99,9 +105,23 @@ const filteredFlyers = flyers.filter((flyer) => {
 </span>
 
   {username ? (
-    <button type="button" onClick={handleLogout}>
-      Log Out
-    </button>
+    <button
+  type="button"
+  onClick={handleLogout}
+  style={{
+    backgroundColor: "#245a88",
+    color: "white",
+    border: "2px solid white",
+    borderRadius: "6px",
+    padding: "10px 18px",
+    fontSize: "16px",
+    fontWeight: "bold",
+    cursor: "pointer",
+  }}
+>
+  Log Out
+</button>
+
   ) : (
     <Link to="/">Log In</Link>
   )}
@@ -113,48 +133,136 @@ const filteredFlyers = flyers.filter((flyer) => {
     marginTop: "0",
   }}
 >Campus Bulletin Board</h1>
-
-      {username && (
-  <Link
-    to="/upload"
-    style={{
-      margin: "0 auto",
-      padding: "14px 32px",
-      fontSize: "20px",
-      width: "220px"
-    }}
-  >
-    Upload Flyer
-  </Link>
-)}
+{/* Navigation buttons */}
+<div
+  style={{
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "20px",
+    flexWrap: "wrap",
+    margin: "25px 0 35px",
+  }}
+>
+  {username && (
+    <Link
+      to="/upload"
+      style={{
+        display: "inline-flex",
+        justifyContent: "center",
+        alignItems: "center",
+        boxSizing: "border-box",
+        padding: "14px 28px",
+        fontSize: "20px",
+        width: "220px",
+        backgroundColor: "#245a88",
+        color: "white",
+        border: "2px solid white",
+        borderRadius: "6px",
+        textDecoration: "none",
+      }}
+    >
+      Upload Flyer
+    </Link>
+  )}
 
   <button
     type="button"
     onClick={() => setShowPastFlyers(!showPastFlyers)}
     style={{
-      padding: "14px 32px",
+      padding: "14px 28px",
       fontSize: "20px",
       width: "220px",
+      backgroundColor: "#245a88",
+      color: "white",
+      border: "2px solid white",
+      borderRadius: "6px",
+      cursor: "pointer",
     }}
   >
     {showPastFlyers ? "Current Flyers" : "Past Flyers"}
   </button>
+</div>
 
+{/* Search and category filters */}
+<div
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    gap: "24px",
+    flexWrap: "wrap",
+    maxWidth: "900px",
+    margin: "0 auto 30px",
+    padding: "0 20px",
+  }}
+>
+  <label
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      gap: "8px",
+      flex: "1 1 280px",
+      textAlign: "left",
+      fontWeight: "bold",
+      minWidth: "260px",
+      fontSize: "16px",
+      lineHeight: "22px",
+    }}
+  >
+    Search Flyers
+    <input
+      type="search"
+      value={searchKeyword}
+      onChange={(event) => setSearchKeyword(event.target.value)}
+      placeholder="Search by keyword..."
+      style={{
+        padding: "12px",
+        fontSize: "16px",
+        borderRadius: "6px",
+        border: "1px solid #888",
+        width: "100%",
+        height: "48px",
+        boxSizing: "border-box",
+      }}
+    />
+  </label>
 
-      <label className="category-filter">
-        Filter by category:
-        <select
-          value={selectedCategory}
-          onChange={(event) => setSelectedCategory(event.target.value)}
-        >
-          <option value="All">All Categories</option>
-          <option value="General">General</option>
-          <option value="Academic">Academic</option>
-          <option value="Clubs">Clubs & Organizations</option>
-          <option value="Events">Campus Events</option>
-          <option value="Other">Other</option>
-        </select>
-      </label>
+  <label
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      gap: "8px",
+      textAlign: "left",
+      fontWeight: "bold",
+      fontSize: "16px",
+      lineHeight: "22px",
+    }}
+  >
+    Filter by category:
+    <select
+      value={selectedCategory}
+      onChange={(event) => setSelectedCategory(event.target.value)}
+      style={{
+        padding: "12px",
+        fontSize: "16px",
+        borderRadius: "6px",
+        width: "260px",
+        maxWidth: "100%",
+        height: "48px",
+        boxSizing: "border-box",
+      }}
+    >
+      <option value="All">All Categories</option>
+      <option value="General">General</option>
+      <option value="Academic">Academic</option>
+      <option value="Clubs">Clubs & Organizations</option>
+      <option value="Events">Campus Events</option>
+      <option value="Other">Other</option>
+    </select>
+  </label>
+</div>
+
 
       <section>
         {loading && <p>Loading flyers...</p>}

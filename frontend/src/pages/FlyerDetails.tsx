@@ -18,6 +18,7 @@ function FlyerDetails() {
   const storedUserId = sessionStorage.getItem("userId");
   const currentUserId = storedUserId ? Number(storedUserId) : null;
   const [flyer, setFlyer] = useState<Flyer | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const isOwner =
   flyer !== null &&
   currentUserId !== null &&
@@ -62,12 +63,41 @@ function FlyerDetails() {
       setLoading(false);
     }
   }, [id]);
+useEffect(() => {
+  let active = true;
 
-  async function handleDelete() {
-  if (!id || !flyer || !isOwner || currentUserId === null) {
-    window.alert("You can only delete your own flyers.");
-    return;
+  async function checkAdminStatus() {
+    try {
+      const response = await fetch("http://localhost:3000/me", {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        if (active) setIsAdmin(false);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (active) {
+        setIsAdmin(data.isAdmin === true);
+      }
+    } catch {
+      if (active) setIsAdmin(false);
+    }
   }
+
+  checkAdminStatus();
+
+  return () => {
+    active = false;
+  };
+}, []);
+  async function handleDelete() {
+  if (!id || !flyer || (!isOwner && !isAdmin)) {
+  window.alert("You do not have permission to delete this flyer.");
+  return;
+}
 
   const confirmed = window.confirm(
     "Are you sure you want to delete this flyer? This cannot be undone."
@@ -152,7 +182,8 @@ if (error || !flyer) {
     : "Not specified"}
 </p>
     <p>Location: {flyer.location || "Not specified"}</p>
-     {isOwner && (
+     
+{(isOwner || isAdmin) && (
   <div
     style={{
       display: "flex",
@@ -161,17 +192,20 @@ if (error || !flyer) {
       marginBottom: "20px",
     }}
   >
-    <Link to={`/edit/${flyer.id}`}>
-  <button type="button">
-    Edit Flyer
-  </button>
-</Link>
+    {isOwner && (
+      <Link to={`/edit/${flyer.id}`}>
+        <button type="button">
+          Edit Flyer
+        </button>
+      </Link>
+    )}
 
     <button type="button" onClick={handleDelete}>
-  Delete Flyer
-</button>
+      Delete Flyer
+    </button>
   </div>
 )}
+
 
     <Link to="/board">Back to Bulletin Board</Link>
   </main>
