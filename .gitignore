@@ -4,3 +4,4 @@ backend/bulletinboard.db
 bulletinboard.db
 frontend/dist/
 backend/uploads/
+backend/.env

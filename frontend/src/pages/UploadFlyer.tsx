@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
 
 function UploadFlyer() {
@@ -60,7 +60,11 @@ const response = await fetch("http://localhost:3000/flyers", {
     setLoading(false);
   }
 }
+const userId = sessionStorage.getItem("userId");
 
+if (!userId) {
+  return <Navigate to="/" replace />;
+}
   return (
     <main className="upload-page">
       <h1>Upload a Flyer</h1>
