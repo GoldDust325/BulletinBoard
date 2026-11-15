@@ -165,7 +165,14 @@ req.session.regenerate((error) => {
         });
     }
 });
-
+if (!process.env.ADMIN_EMAILS?.trim()) {
+    console.warn(
+        "\n[Cork Bored Setup] No administrator emails configured.\n" +
+        "Copy backend/.env.example to backend/.env and add the approved " +
+        "administrator email addresses.\n" +
+        "The backend will start, but administrator privileges will be disabled.\n"
+    );
+}
 const ADMIN_EMAILS = new Set(
   (process.env.ADMIN_EMAILS || "")
     .split(",")
